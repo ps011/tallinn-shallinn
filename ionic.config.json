@@ -1,5 +1,7 @@
 {
   "name": "tallinn-shallinn",
-  "integrations": {},
+  "integrations": {
+    "capacitor": {}
+  },
   "type": "react"
 }

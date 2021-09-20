@@ -1,9 +1,11 @@
-import MessageListItem from '../components/MessageListItem';
+import ContactItem from '../components/ContactItem';
 import { useState } from 'react';
-import { Message, getMessages } from '../data/messages';
 import {
   IonContent,
+  IonFab,
+  IonFabButton,
   IonHeader,
+  IonIcon,
   IonList,
   IonPage,
   IonRefresher,
@@ -11,16 +13,19 @@ import {
   IonTitle,
   IonToolbar,
   useIonViewWillEnter
+  
 } from '@ionic/react';
 import './Home.css';
+import { add } from 'ionicons/icons';
+import { getAllContacts } from '../services/contacts';
+import Contact from '../interfaces/contacts';
 
 const Home: React.FC = () => {
+  const [contacts, setContacts] = useState<Contact[]>([]);
 
-  const [messages, setMessages] = useState<Message[]>([]);
-
-  useIonViewWillEnter(() => {
-    const msgs = getMessages();
-    setMessages(msgs);
+  useIonViewWillEnter(async () => {
+    const contactsData = await getAllContacts();
+    setContacts(contactsData);
   });
 
   const refresh = (e: CustomEvent) => {
@@ -50,8 +55,17 @@ const Home: React.FC = () => {
         </IonHeader>
 
         <IonList>
-          {messages.map(m => <MessageListItem key={m.id} message={m} />)}
+          {contacts.map(c => <ContactItem key={c.number} contact={c} />)}
         </IonList>
+        <IonFab 
+        vertical="bottom"
+        horizontal="end"
+        slot="fixed"
+        >
+          <IonFabButton>
+            <IonIcon icon={add} />
+          </IonFabButton>
+        </IonFab>
       </IonContent>
     </IonPage>
   );

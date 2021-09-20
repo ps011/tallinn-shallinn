@@ -3,9 +3,16 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "@capacitor/android": "3.2.3",
+    "@capacitor/app": "1.0.3",
     "@capacitor/core": "3.2.3",
+    "@capacitor/haptics": "1.0.3",
+    "@capacitor/keyboard": "1.0.3",
+    "@capacitor/status-bar": "1.0.3",
+    "@ionic-native/sqlite": "^5.36.0",
     "@ionic/react": "^5.5.0",
     "@ionic/react-router": "^5.5.0",
+    "@ionic/storage": "^3.0.6",
     "@testing-library/jest-dom": "^5.11.9",
     "@testing-library/react": "^11.2.5",
     "@testing-library/user-event": "^12.6.3",
@@ -15,6 +22,7 @@
     "@types/react-dom": "^16.9.10",
     "@types/react-router": "^5.1.11",
     "@types/react-router-dom": "^5.1.7",
+    "cordova-sqlite-storage": "^6.0.0",
     "ionicons": "^5.4.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
@@ -61,7 +69,8 @@
     ]
   },
   "devDependencies": {
-    "@capacitor/cli": "3.2.3"
+    "@capacitor/cli": "3.2.3",
+    "@ionic/lab": "3.2.10"
   },
   "description": "An Ionic project"
 }
