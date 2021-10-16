@@ -18,17 +18,21 @@ import {
   IonItem,
   IonInput,
   IonLabel,
-  IonLoading
+  IonLoading,
+  IonFabList,
+  IonCheckbox
 
 } from '@ionic/react';
 import './Home.css';
-import { add } from 'ionicons/icons';
+import { add, cloudDownloadSharp } from 'ionicons/icons';
 import { getAllContacts, createContact as create, deleteItem } from '../services/contacts';
 import Contact from '../interfaces/contacts';
+import { Contacts, Contact as ContactNative } from "@ionic-native/contacts";
 
 const Home: React.FC = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
@@ -37,8 +41,9 @@ const Home: React.FC = () => {
   const [country, setCountry] = useState('');
   const [preferableTime, setPreferableTime] = useState('');
   const [frequency, setFrequency] = useState('');
-
-
+  const [contactsToImport, setContactsToImport] = useState<ContactNative[]>([]);
+  const contactsNative = new Contacts();
+  const checkedList = [];
 
   useIonViewWillEnter(async () => {
     if (!contacts.length)
@@ -89,6 +94,13 @@ const Home: React.FC = () => {
     setContacts(updatedContacts);
   }
 
+  const importContacts = async () => {
+    setShowImportModal(true);
+    const ctcs: ContactNative[] = await contactsNative.find(["*"], { multiple: true })
+    // console.log(ctcs);
+    setContactsToImport(ctcs.slice(10));
+  }
+
   return (
     <IonPage id="home-page">
       <IonHeader>
@@ -114,12 +126,17 @@ const Home: React.FC = () => {
           horizontal="end"
           slot="fixed"
         >
-          <IonFabButton onClick={() => setShowModal(true)}>
+          <IonFabButton>
             <IonIcon icon={add} />
           </IonFabButton>
+          <IonFabList side="top">
+            <IonFabButton onClick={() => importContacts()}><IonIcon icon={cloudDownloadSharp} /></IonFabButton>
+            <IonFabButton onClick={() => setShowModal(true)}> <IonIcon icon={add} /></IonFabButton>
+          </IonFabList>
         </IonFab>
-        <IonModal isOpen={showModal} cssClass='createContact'>
 
+        {/* Modal to create a new contact */}
+        <IonModal isOpen={showModal} cssClass='createContact'>
           <IonItem>
             <IonLabel position="floating">Name</IonLabel>
             <IonInput value={name} onIonChange={(e) => setName(e.detail.value!)}></IonInput>
@@ -150,6 +167,18 @@ const Home: React.FC = () => {
           </IonItem>
           <IonButton onClick={createContact}>Create Contact</IonButton>
           <IonButton onClick={resetForm}>Cancel</IonButton>
+        </IonModal>
+
+        {/* Modal to select and import contacts */}
+        <IonModal isOpen={showImportModal} cssClass='importContacts'>
+          {
+            contactsToImport!.map((c) => {
+              // return <IonItem key={c.id}>
+              return <IonLabel>{c.name.formatted}</IonLabel>
+              // <IonCheckbox onIonChange={e => checkedList.push(e.detail.checked)} />
+              // </IonItem>
+            })
+          }
         </IonModal>
       </IonContent>
     </IonPage>
