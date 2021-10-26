@@ -1,3 +1,7 @@
 .createContact {
   padding: 24px;
 }
+
+.importContacts {
+  overflow-y: scroll;
+}

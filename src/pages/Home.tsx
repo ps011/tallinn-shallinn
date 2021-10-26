@@ -18,17 +18,23 @@ import {
   IonItem,
   IonInput,
   IonLabel,
-  IonLoading
+  IonLoading,
+  IonFabList,
+  IonCheckbox,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent
 
 } from '@ionic/react';
 import './Home.css';
-import { add } from 'ionicons/icons';
+import { add, cloudDownloadSharp } from 'ionicons/icons';
 import { getAllContacts, createContact as create, deleteItem } from '../services/contacts';
 import Contact from '../interfaces/contacts';
+import { Contacts, Contact as ContactNative } from "@ionic-native/contacts";
 
 const Home: React.FC = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
@@ -37,8 +43,11 @@ const Home: React.FC = () => {
   const [country, setCountry] = useState('');
   const [preferableTime, setPreferableTime] = useState('');
   const [frequency, setFrequency] = useState('');
-
-
+  const [contactsToImport, setContactsToImport] = useState<ContactNative[]>([]);
+  const [allContactsToImport, setAllContactsToImport] = useState<ContactNative[]>([]);
+  const [checkedList, setCheckedList] = useState<ContactNative[]>([]);
+  const [page, setPage] = useState(1);
+  const contactsNative = new Contacts();
 
   useIonViewWillEnter(async () => {
     if (!contacts.length)
@@ -89,11 +98,42 @@ const Home: React.FC = () => {
     setContacts(updatedContacts);
   }
 
+  const importContacts = async () => {
+    setShowImportModal(true);
+    const ctcs: ContactNative[] = await contactsNative.find(["*"], { multiple: true })
+    const allContacts = ctcs.filter(c => c.name.formatted && c.phoneNumbers && c.phoneNumbers.length).sort();
+    setAllContactsToImport(allContacts)
+    setContactsToImport(allContacts.slice(0, 20));
+  }
+
+  const loadMoreContacts = (e: any) => {
+    setContactsToImport([...contactsToImport, ...allContactsToImport.slice(page * 20, page * 20 + 20)])
+    setPage(page + 1);
+    e.target.complete();
+  }
+
+  const importSelectedContacts = () => {
+    setShowLoading(true);
+    checkedList.forEach(async contact => {
+      await create({
+        name: contact.name.formatted!,
+        number: contact.phoneNumbers[0].value!,
+        closenessFactor: -1,
+        frequency: "None",
+        relation: "None",
+        country: "None",
+        preferableTime: "Anytime"
+      });
+    })
+    setShowLoading(false);
+  }
+
+
   return (
     <IonPage id="home-page">
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Inbox</IonTitle>
+          <IonTitle>Contacts</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
@@ -114,12 +154,17 @@ const Home: React.FC = () => {
           horizontal="end"
           slot="fixed"
         >
-          <IonFabButton onClick={() => setShowModal(true)}>
+          <IonFabButton>
             <IonIcon icon={add} />
           </IonFabButton>
+          <IonFabList side="top">
+            <IonFabButton onClick={() => importContacts()}><IonIcon icon={cloudDownloadSharp} /></IonFabButton>
+            <IonFabButton onClick={() => setShowModal(true)}> <IonIcon icon={add} /></IonFabButton>
+          </IonFabList>
         </IonFab>
-        <IonModal isOpen={showModal} cssClass='createContact'>
 
+        {/* Modal to create a new contact */}
+        <IonModal isOpen={showModal} cssClass='createContact'>
           <IonItem>
             <IonLabel position="floating">Name</IonLabel>
             <IonInput value={name} onIonChange={(e) => setName(e.detail.value!)}></IonInput>
@@ -150,6 +195,37 @@ const Home: React.FC = () => {
           </IonItem>
           <IonButton onClick={createContact}>Create Contact</IonButton>
           <IonButton onClick={resetForm}>Cancel</IonButton>
+        </IonModal>
+
+        {/* Modal to select and import contacts */}
+        <IonModal isOpen={showImportModal} cssClass='importContacts'>
+          <IonContent>
+            <IonList className="importContacts">
+              {
+                contactsToImport!.map((c) => {
+                  return <IonItem key={c.id}>
+                    <IonLabel>{c.name.formatted}</IonLabel>
+                    <IonCheckbox onIonChange={e => setCheckedList([...checkedList, c])} />
+                  </IonItem>
+                })
+              }
+            </IonList>
+            <IonInfiniteScroll disabled={page >= (allContactsToImport.length / 20)} threshold="100px" onIonInfinite={loadMoreContacts}>
+              <IonInfiniteScrollContent
+                loadingSpinner="bubbles"
+                loadingText="Loading more data...">
+              </IonInfiniteScrollContent>
+            </IonInfiniteScroll>
+            <IonFab
+              vertical="bottom"
+              horizontal="end"
+              slot="fixed"
+            >
+              <IonFabButton onClick={importSelectedContacts}>
+                <IonIcon icon={add} />
+              </IonFabButton>
+            </IonFab>
+          </IonContent>
         </IonModal>
       </IonContent>
     </IonPage>
