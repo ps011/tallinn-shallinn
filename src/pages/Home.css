@@ -3,5 +3,5 @@
 }
 
 .importContacts {
-  background: "green";
+  overflow-y: scroll;
 }
